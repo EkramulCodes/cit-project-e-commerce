@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search } from 'lucide-react';
-import Input from '../../ui/Input';
+import Input from '../../components/ui/Input';
 
 const SearchInput = ({ className = "" }) => {
   const [searchQuery, setSearchQuery] = useState('');

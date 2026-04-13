@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import Layout from '../components/Layout/Home';
 import Banner from '../components/Layout/Home/Banner';
 import { ChevronRight, Star, Heart, ShoppingCart, ChevronDown } from 'lucide-react';
-import Button from '../ui/Button';
+import Button from '../components/ui/Button';
 import { categories, products } from '../constants';
 import { useCart } from '../context/CartContext';
 

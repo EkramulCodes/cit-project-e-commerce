@@ -8,6 +8,7 @@ import Search from './pages/Search';
 import Login from './pages/Login';
 import { CartProvider } from './context/CartContext';
 
+
 export default function App() {
   return (
     <CartProvider>

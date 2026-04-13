@@ -5,7 +5,7 @@ export const categories = [
   { name: 'Groceries', icon: '/Groceries icon.png' },
   { name: 'Home & Lifestyle', icon: '/Home & Lifestyle icon.png' },
   { name: 'Men Fashion', icon: '/Men Fashion icon.png' },
-  { name: 'Women\'s Fashion', icon: '/Women’s Fashion icon.png' },
+  { name: "Women's Fashion", icon: '/Women’s Fashion icon.png' },
   { name: 'Stationary & Books', icon: '/Stationary & Books icon.png' },
   { name: 'Leather Goods', icon: '/Leather Goods icon.png' },
   { name: 'Jewelleries', icon: '/Jewelleries  icon.png' },
@@ -105,7 +105,7 @@ export const products = [
   },
   { 
     id: 6, 
-    name: 'Casual Men\'s Shirt - Blue', 
+    name: "Casual Men's Shirt - Blue", 
     price: 1000, 
     oldPrice: 1333, 
     rating: 5, 
@@ -137,10 +137,7 @@ export const products = [
     image: 'https://picsum.photos/seed/p8/600/600', 
     discount: '25% OFF',
     description: 'Beautiful summer dress with a vibrant floral print, ideal for sunny days and outdoor events.',
-    category: 'Women\'s Fashion'
-  },
-<<<<<<< HEAD
+    category: "Women's Fashion"
+  }
 ];
-=======
-];
->>>>>>> 62835f1 (Rearrange folder structure)
+
