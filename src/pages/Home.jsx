@@ -4,8 +4,9 @@ import Layout from '../components/Layout/Home';
 import Banner from '../components/Layout/Home/Banner';
 import { ChevronRight, Star, Heart, ShoppingCart, ChevronDown } from 'lucide-react';
 import Button from '../components/ui/Button';
-import { categories, products } from '../constants';
+import { categories } from '../constants';
 import { useCart } from '../context/CartContext';
+import { useGetProductsQuery } from '../services/api';
 
 const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
@@ -59,6 +60,41 @@ const ProductCard = ({ product }) => {
 };
 
 const Home = () => {
+  const { data, isLoading, error } = useGetProductsQuery({ limit: 20, skip: 0 });
+  const products = data?.products?.map(product => ({
+    ...product,
+    name: product.title,
+    image: product.thumbnail,
+    price: Math.round(product.price * 110), // USD to approx BDT
+    discount: product.discountPercentage ? `${Math.round(product.discountPercentage)}% OFF` : null,
+    reviews: Math.floor(Math.random() * 100) + 1,
+    liked: false
+  })) || [];
+
+  if (isLoading) return (
+    <Layout>
+      <div className="max-w-7xl mx-auto px-4 py-12">
+        <div className="animate-pulse space-y-8">
+          <div className="h-6 bg-gray-200 rounded w-48"></div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="bg-gray-200 h-64 rounded-xl"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
+
+  if (error) return (
+    <Layout>
+      <div className="max-w-7xl mx-auto px-4 py-12 text-center">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Failed to load products</h2>
+        <Button onClick={() => window.location.reload()}>Retry</Button>
+      </div>
+    </Layout>
+  );
+
   return (
     <Layout>
       <Banner />
@@ -104,9 +140,9 @@ const Home = () => {
       <section className="max-w-7xl mx-auto px-4 py-12">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl font-bold text-gray-800">Featured Product</h2>
-          <button className="text-gray-400 text-sm font-medium flex items-center gap-1 hover:text-[#00aaff]">
+          <Link to="/shop" className="text-gray-400 text-sm font-medium flex items-center gap-1 hover:text-[#00aaff]">
             View more <ChevronRight size={16} />
-          </button>
+          </Link>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
           {products.map(product => (
@@ -114,9 +150,11 @@ const Home = () => {
           ))}
         </div>
         <div className="flex justify-center mt-12">
-          <Button variant="primary" className="px-10 py-3 flex items-center gap-2">
-            SHOW MORE <ChevronDown size={16} />
-          </Button>
+          <Link to="/shop">
+            <Button variant="primary" className="px-10 py-3 flex items-center gap-2">
+              SHOW MORE <ChevronDown size={16} />
+            </Button>
+          </Link>
         </div>
       </section>
     </Layout>

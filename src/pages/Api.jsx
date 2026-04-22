@@ -1,79 +1,108 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState } from 'react';
+import { useGetProductsQuery, useRegisterUserMutation } from '../services/api';
 
 const Api = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  // Unused state from original vanilla demo
+  // const [data, setData] = useState([]);
+  // Unused state from original vanilla demo
+  // const [loading, setLoading] = useState(false);
+  // Unused
+  // const [registerErrorLocal, setRegisterErrorLocal] = useState(null);
 
-  // 1. Handling Fetch with async/await & try...catch
-  const fetchData = async () => {
-    setLoading(true);
-    setError(null);
-    
+  const { data: productsData, isLoading, queryError } = useGetProductsQuery({ limit: 5, skip: 0 });
+  const [
+    registerUser,
+    { data: registerResult, isLoading: registerLoading, error: registerError }
+  ] = useRegisterUserMutation();
+  
+  const products = productsData?.products || [];
+
+  // Simple form state for registration demo
+  const [formData, setFormData] = useState({ username: '', email: '', password: '' });
+  
+  const handleInputChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleRegister = async () => {
     try {
-      // Using axios for cleaner syntax (auto-converts to JSON)
-      const response = await axios.get('https://jsonplaceholder.typicode.com/posts?_limit=5');
-      setData(response.data);
+      await registerUser(formData).unwrap();
+      console.log('User registered successfully!');
+      setFormData({ username: '', email: '', password: '' });
     } catch (err) {
-      setError("Failed to fetch data. Please try again.");
-      console.error("Error details:", err);
-    } finally {
-      setLoading(false);
+      console.error('Registration error:', err);
     }
   };
 
-  // 2. Handling POST request with fetch API
-  const addPost = async () => {
-    const newPost = {
-      title: 'Practice Post',
-      body: 'Learning async/await in React',
-      userId: 1,
-    };
-
-    try {
-      const response = await fetch('https://jsonplaceholder.typicode.com/posts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newPost),
-      });
-      
-      const result = await response.json();
-      alert(`Post added successfully! ID: ${result.id}`);
-      // In a real app, it might add this to the local state
-      setData([result, ...data]);
-    } catch (err) {
-      console.error("Post error:", err);
-    }
-  };
-
-  // Run on component mount
-  useEffect(() => {
-    fetchData();
-  }, []);
+  // No useEffect needed - RTK Query handles it
 
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial' }}>
-      <h1>Async Programming Practice</h1>
+      <h1>RTK Query Demo (Products & Mutation)</h1>
       
       <div style={{ marginBottom: '20px' }}>
-        <button onClick={fetchData} disabled={loading} style={buttonStyle}>
-          {loading ? 'Loading...' : 'Refresh List (GET)'}
-        </button>
-        <button onClick={addPost} style={{ ...buttonStyle, marginLeft: '10px', backgroundColor: '#28a745' }}>
-          Add Sample Post (POST)
+        <button 
+          onClick={() => window.location.reload()} 
+          disabled={isLoading} 
+          style={buttonStyle}
+        >
+          {isLoading ? 'Loading...' : 'Refresh Page (Refetch)'}
         </button>
       </div>
+      
+      {/* Registration Form Demo */}
+      <div style={{ marginBottom: '20px', padding: '20px', border: '1px solid #ddd', borderRadius: '8px' }}>
+        <h3>Register User (RTK Mutation)</h3>
+        <input
+          name="username"
+          placeholder="Username"
+          value={formData.username}
+          onChange={handleInputChange}
+          style={{ ...inputStyle, marginRight: '10px' }}
+          disabled={registerLoading}
+        />
+        <input
+          name="email"
+          placeholder="Email"
+          type="email"
+          value={formData.email}
+          onChange={handleInputChange}
+          style={{ ...inputStyle, marginRight: '10px' }}
+          disabled={registerLoading}
+        />
+        <input
+          name="password"
+          placeholder="Password"
+          type="password"
+          value={formData.password}
+          onChange={handleInputChange}
+          style={{ ...inputStyle, marginRight: '10px' }}
+          disabled={registerLoading}
+        />
+        <button 
+          onClick={handleRegister} 
+          disabled={registerLoading}
+          style={{ ...buttonStyle, backgroundColor: '#28a745' }}
+        >
+          {registerLoading ? 'Registering...' : 'Register'}
+        </button>
+        {registerError && <p style={{ color: 'red', fontSize: '14px' }}>Register error: {registerError?.data?.message || 'Failed'}</p>}
+        {registerResult && <p style={{ color: 'green' }}>Success! ID: {registerResult.id}</p>}
+      </div>
 
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {queryError && <p style={{ color: 'red' }}>{queryError.toString()}</p>}
 
       <div style={{ display: 'grid', gap: '10px' }}>
-        {data.map((post) => (
-          <div key={post.id} style={cardStyle}>
-            <h3>{post.title}</h3>
-            <p>{post.body}</p>
+        {products.map((product) => (
+          <div key={product.id} style={cardStyle}>
+            <img 
+              src={product.thumbnail} 
+              alt={product.title} 
+              style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '4px' }}
+            />
+            <h3>{product.title}</h3>
+            <p>{product.description.substring(0, 100)}...</p>
+            <p style={{ fontWeight: 'bold', color: '#28a745' }}>${product.price}</p>
           </div>
         ))}
       </div>
@@ -97,6 +126,14 @@ const buttonStyle = {
   color: 'white',
   border: 'none',
   borderRadius: '4px'
+};
+
+const inputStyle = {
+  padding: '10px',
+  border: '1px solid #ddd',
+  borderRadius: '4px',
+  marginBottom: '5px',
+  width: '150px'
 };
 
 export default Api;

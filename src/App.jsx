@@ -6,6 +6,8 @@ import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/Cart';
 import Search from './pages/Search';
 import Login from './pages/Login';
+import Shop from './pages/Shop';
+import Registration from './pages/Registration';
 import { CartProvider } from './context/CartContext';
 
 
@@ -20,6 +22,8 @@ export default function App() {
           <Route path="/cart" element={<Cart />} />
           <Route path="/search" element={<Search />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/shop" element={<Shop />} />
+          <Route path="/registration" element={<Registration />} />
         </Routes>
       </Router>
     </CartProvider>
