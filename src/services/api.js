@@ -8,6 +8,15 @@ export const apiService = createApi({
     getProducts: build.query({
       query: ({ limit, skip }) => `/products?limit=${limit}&skip=${skip}`,
     }),
+    getCategories: build.query({
+      query: () => '/products/category-list',
+    }),
+    getProductsByCategory: build.query({
+      query: ({ category, limit, skip }) => `/products/category/${category}?limit=${limit}&skip=${skip}`,
+    }),
+    getProductById: build.query({
+      query: (id) => `/products/${id}`,
+    }),
     registerUser: build.mutation({
       query: (userData) => ({
         url: '/auth/register',
@@ -19,4 +28,4 @@ export const apiService = createApi({
   }),
 });
 
-export const { useGetProductsQuery, useRegisterUserMutation } = apiService;
+export const { useGetProductsQuery, useGetCategoriesQuery, useGetProductsByCategoryQuery, useGetProductByIdQuery, useRegisterUserMutation } = apiService;

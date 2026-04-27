@@ -4,9 +4,8 @@ import Layout from '../components/Layout/Home';
 import Banner from '../components/Layout/Home/Banner';
 import { ChevronRight, Star, Heart, ShoppingCart, ChevronDown } from 'lucide-react';
 import Button from '../components/ui/Button';
-import { categories } from '../constants';
 import { useCart } from '../context/CartContext';
-import { useGetProductsQuery } from '../services/api';
+import { useGetProductsQuery, useGetCategoriesQuery } from '../services/api';
 
 const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
@@ -61,6 +60,8 @@ const ProductCard = ({ product }) => {
 
 const Home = () => {
   const { data, isLoading, error } = useGetProductsQuery({ limit: 20, skip: 0 });
+  const { data: categoriesData } = useGetCategoriesQuery();
+  const categories = categoriesData || [];
   const products = data?.products?.map(product => ({
     ...product,
     name: product.title,
@@ -103,21 +104,19 @@ const Home = () => {
       <section className="max-w-7xl mx-auto px-4 py-12">
         <h2 className="text-2xl font-bold text-gray-800 mb-8">Category</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {categories.map((cat, i) => (
-            <Link 
-              key={i} 
-              to={`/search?q=${encodeURIComponent(cat.name)}`}
-              className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl hover:border-[#00aaff] hover:shadow-sm transition-all cursor-pointer group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-lg p-1">
-                  <img src={cat.icon} alt={cat.name} className="w-full h-full object-contain" referrerPolicy="no-referrer" />
-                </div>
-                <span className="text-sm font-medium text-gray-700 group-hover:text-[#00aaff] transition-colors">{cat.name}</span>
-              </div>
-              <ChevronRight size={16} className="text-gray-300 group-hover:text-[#00aaff]" />
-            </Link>
-          ))}
+          {categories.map((cat, i) => {
+            const displayName = cat.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            return (
+              <Link
+                key={i}
+                to={`/shop?category=${encodeURIComponent(cat)}`}
+                className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl hover:border-[#00aaff] hover:shadow-sm transition-all cursor-pointer group"
+              >
+                <span className="text-sm font-medium text-gray-700 group-hover:text-[#00aaff] transition-colors">{displayName}</span>
+                <ChevronRight size={16} className="text-gray-300 group-hover:text-[#00aaff]" />
+              </Link>
+            );
+          })}
         </div>
       </section>
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import Layout from "../components/Layout/Home";
-import { useGetProductsQuery } from "../services/api";
+import { useGetProductsQuery, useGetCategoriesQuery, useGetProductsByCategoryQuery } from "../services/api";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
 import Pagination from "../components/ui/Pagination";
@@ -18,16 +18,43 @@ const Shop = () => {
     setPageNum(newPage);
   };
 
-  const { data, isLoading, error } = useGetProductsQuery({
-    limit,
-    skip: limit * (pageNum - 1),
-  });
+  const [searchParams] = useSearchParams();
+  const categoryParam = searchParams.get("category");
+  const skip = limit * (pageNum - 1);
+
+  const {
+    data: allProductsData,
+    isLoading: allProductsLoading,
+    error: allProductsError,
+  } = useGetProductsQuery(
+    { limit, skip },
+    { skip: !!categoryParam }
+  );
+
+  const {
+    data: categoryData,
+    isLoading: categoryLoading,
+    error: categoryError,
+  } = useGetProductsByCategoryQuery(
+    { category: categoryParam, limit, skip },
+    { skip: !categoryParam }
+  );
+
+  const { data: categoriesData } = useGetCategoriesQuery();
+
+  const data = categoryParam ? categoryData : allProductsData;
+  const isLoading = categoryParam ? categoryLoading : allProductsLoading;
+  const error = categoryParam ? categoryError : allProductsError;
 
   useEffect(() => {
     if (data?.total) {
       setTotalPage(Math.ceil(data?.total / limit));
     }
   }, [data?.total, limit]);
+
+  useEffect(() => {
+    setPageNum(1);
+  }, [categoryParam]);
 
   const sortOptions = [
     {
@@ -47,29 +74,8 @@ const Shop = () => {
       label: "80",
     },
   ];
-  const categories = [
-    {
-      title: "Health & Household",
-    },
-    {
-      title: "Kids Fashion",
-    },
-    {
-      title: "Toys",
-    },
-    {
-      title: "Groceries",
-    },
-    {
-      title: "Men Fashion",
-    },
-    {
-      title: "Women’s Fashion",
-    },
-    {
-      title: "Stationary & Books",
-    },
-  ];
+
+  const categories = categoriesData || [];
 
   return (
     <Layout>
@@ -80,15 +86,18 @@ const Shop = () => {
               Related Categories
             </h3>
             <div className="space-y-1.5">
-              {categories.map((item) => (
-                <Link
-                  to="/shop"
-                  key={item.title}
-                  className="block text-base text-secondary"
-                >
-                  {item.title}
-                </Link>
-              ))}
+              {categories.map((cat) => {
+                const displayName = cat.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                return (
+                  <Link
+                    to={`/shop?category=${encodeURIComponent(cat)}`}
+                    key={cat}
+                    className="block text-base text-secondary"
+                  >
+                    {displayName}
+                  </Link>
+                );
+              })}
             </div>
           <div className="py-6 my-6 border-y-2 border-y-secondary/10">
             <h3 className="text-lg font-medium text-primary">
