@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'motion/react';
 import { Search, User, Heart, ShoppingCart } from 'lucide-react';
 import SearchInput from '../SearchInput';
 import { useCart } from '../../../context/CartContext';
-import { womenFashionCategories } from '../../../constants';
+import { useGetCategoriesQuery } from '../../../services/api';
 
 const Navbar = () => {
   const { cartCount } = useCart();
-  const [showWomenMegaMenu, setShowWomenMegaMenu] = useState(false);
+  const { data: categoriesData } = useGetCategoriesQuery();
+  const allCategories = categoriesData || [];
+  const categories = allCategories.slice(0, 9); // Show first 9 that fit container
 
   return (
     <header className="w-full bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
@@ -52,75 +53,20 @@ const Navbar = () => {
       </div>
 
       {/* Navigation Links */}
-      <nav className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-center gap-8 whitespace-nowrap relative">
-        <div 
-          className="flex items-center gap-1 text-black font-normal text-sm cursor-pointer uppercase tracking-wide py-2"
-          onMouseEnter={() => setShowWomenMegaMenu(true)}
-          onMouseLeave={() => setShowWomenMegaMenu(false)}
-        >
-          Women's Fashion
-          
-          {/* Mega Menu */}
-          <AnimatePresence>
-            {showWomenMegaMenu && (
-              <>
-                {/* Bridge to prevent closing when moving mouse */}
-                <div className="absolute top-full left-0 w-full h-4 bg-transparent" />
-                
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute top-[calc(100%+4px)] left-0 w-full bg-white shadow-2xl border border-gray-100 z-[100] p-10 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-8 gap-y-10 whitespace-normal rounded-xl"
-                >
-                  {Object.entries(womenFashionCategories).slice(0, 4).map(([category, items]) => (
-                    <div key={category} className="space-y-4">
-                      <h3 className="font-bold text-gray-900 text-sm border-b border-gray-100 pb-2 uppercase tracking-wider">{category}</h3>
-                      <ul className="space-y-2">
-                        {items.map((item) => (
-                          <li key={item}>
-                            <Link 
-                              to={`/category/women?sub=${item}`} 
-                              className="text-gray-500 hover:text-[#00aaff] text-xs transition-colors block"
-                            >
-                              {item}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                  <div className="lg:col-start-5 flex flex-col justify-between h-full">
-                    {Object.entries(womenFashionCategories).slice(4).map(([category, items]) => (
-                      <div key={category} className="space-y-4">
-                        <h3 className="font-bold text-gray-900 text-sm border-b border-gray-100 pb-2 uppercase tracking-wider">{category}</h3>
-                        <ul className="space-y-2">
-                          {items.map((item) => (
-                            <li key={item}>
-                              <Link 
-                                to={`/category/women?sub=${item}`} 
-                                className="text-gray-500 hover:text-[#00aaff] text-xs transition-colors block"
-                              >
-                                {item}
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              </>
-            )}
-          </AnimatePresence>
-        </div>
-        <div className="text-gray-700 font-normal text-sm cursor-pointer uppercase tracking-wide hover:text-[#00aaff]">Men's Fashion</div>
-        <div className="text-gray-700 font-normal text-sm cursor-pointer uppercase tracking-wide hover:text-[#00aaff]">Kid's Fashion</div>
-        <div className="text-gray-700 font-normal text-sm cursor-pointer uppercase tracking-wide hover:text-[#00aaff]">Home & Lifestyle</div>
-        <div className="text-gray-700 font-normal text-sm cursor-pointer uppercase tracking-wide hover:text-[#00aaff]">Arts & Crafts</div>
-        <div className="text-gray-700 font-normal text-sm cursor-pointer uppercase tracking-wide hover:text-[#00aaff]">Computer & Electronics</div>
-        <div className="text-gray-700 font-normal text-sm cursor-pointer uppercase tracking-wide hover:text-[#00aaff]">Food & Grocery</div>
+      <nav className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-center gap-1 sm:gap-2 md:gap-3 lg:gap-4 flex-wrap overflow-x-auto no-scrollbar">
+
+        {categories.map((cat) => {
+          const displayName = cat.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          return (
+            <Link
+              key={cat}
+              to={`/shop?category=${encodeURIComponent(cat)}`}
+              className="text-gray-700 font-normal text-[11px] sm:text-xs md:text-sm cursor-pointer uppercase tracking-wide hover:text-[#00aaff] transition-all px-1 py-0.5 rounded whitespace-nowrap flex-shrink-0 hover:bg-gray-100"
+            >
+              {displayName}
+            </Link>
+          );
+        })}
       </nav>
     </header>
   );

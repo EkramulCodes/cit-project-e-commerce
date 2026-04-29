@@ -12,9 +12,22 @@ export default defineConfig(({mode}) => {
         '@': path.resolve(__dirname, '.'),
       },
     },
+    esbuild: {
+      sourcemap: 'inline'
+    },
+    build: {
+      sourcemap: true
+    },
     server: {
       // HMR disabled via DISABLE_HMR env var to prevent flickering during edits.
       hmr: process.env.DISABLE_HMR !== 'true',
+      proxy: {
+        '/api': {
+          target: 'https://dummyjson.com',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api/, '')
+        }
+      }
     },
   };
 });

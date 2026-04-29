@@ -4,24 +4,32 @@ import Layout from '../components/Layout/Home';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import { Eye, EyeOff, Mail, Lock, Github, Chrome } from 'lucide-react';
+import { useLoginUserMutation } from '../services/api';
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
     password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [loginUser] = useLoginUserMutation();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     setIsLoading(true);
-    // Simulate login
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const result = await loginUser({ username: formData.username, password: formData.password }).unwrap();
+      localStorage.setItem('user', JSON.stringify(result));
       navigate('/');
-    }, 1500);
+    } catch (err) {
+      setError('Invalid username or password');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSocialLogin = (provider) => {
@@ -47,16 +55,16 @@ const Login = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
+                Username or Email
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                 <Input
-                  type="email"
-                  placeholder="Enter your email"
+                  type="text"
+                  placeholder="Enter username or email"
                   className="pl-11 pr-4 py-3 w-full border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#00aaff] focus:border-transparent transition-all"
-                  {...formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   required
                 />
               </div>
@@ -72,7 +80,7 @@ const Login = () => {
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Enter your password"
                   className="pl-11 pr-12 py-3 w-full border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#00aaff] focus:border-transparent transition-all"
-                  {...formData.password}
+                  value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required
                 />
@@ -98,6 +106,11 @@ const Login = () => {
               </div>
             </div>
 
+            {error && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+                {error}
+              </div>
+            )}
             <Button 
               type="submit" 
               className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-[#00aaff] to-[#0088cc] hover:from-[#0088cc] hover:to-[#006699] rounded-xl shadow-lg transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
@@ -138,7 +151,7 @@ const Login = () => {
           <p className="mt-8 text-center text-sm text-gray-600">
             Don't have an account?{' '}
             <Link 
-              to="/register" 
+              to="/registration" 
               className="font-medium text-[#00aaff] hover:text-[#0088cc] hover:underline"
             >
               Sign up here
@@ -151,4 +164,3 @@ const Login = () => {
 };
 
 export default Login;
-

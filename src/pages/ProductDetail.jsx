@@ -33,7 +33,7 @@ const ProductDetail = () => {
         oldPrice: oldPriceBdt,
         discount: apiProduct.discountPercentage ? `${Math.round(apiProduct.discountPercentage)}% OFF` : null,
         rating: apiProduct.rating || 0,
-        reviews: apiProduct.reviews?.length || Math.floor(Math.random() * 200) + 10,
+        reviews: apiProduct.reviews ? apiProduct.reviews.length : Math.floor(Math.random() * 200) + 10,
         sold: apiProduct.stock ? `${apiProduct.stock.toLocaleString()}` : '1,000+',
         sku: apiProduct.sku || `SKU-${apiProduct.id}`,
         description: apiProduct.description,
@@ -43,7 +43,7 @@ const ProductDetail = () => {
           "Ambient Mode",
           "One Remote Control"
         ],
-        sizes: ['S', 'M', 'L', 'X', 'XL', 'XXL']
+        // sizes: ['S', 'M', 'L', 'X', 'XL', 'XXL'] // Only for clothing
       });
       setSelectedImageIndex(0);
     }
@@ -191,25 +191,27 @@ const ProductDetail = () => {
                 </Button>
               </div>
 
-              {/* Size Selector */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">Size</label>
-                <div className="flex space-x-2 flex-wrap">
-                  {product.sizes.map(size => (
-                    <button
-                      key={size}
-                      onClick={() => setSelectedSize(size)}
-                      className={`px-4 py-2 border rounded-lg text-sm font-medium transition-all ${
-                        selectedSize === size
-                          ? 'bg-[#00aaff] text-white border-[#00aaff] shadow-md'
-                          : 'border-gray-300 hover:border-gray-400 hover:shadow-sm'
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
+              {/* Size Selector - only for Shoes, Dresses, Shirts, Tops */}
+              {['mens-shoes', 'womens-shoes', 'womens-dresses', "women's-dresses", 'mens-shirts', "men's-shirts", 'womens-shirts', "women's-shirts", 'womens-tops', "women's-tops"].includes(product.category?.toLowerCase()) ? (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">Size</label>
+                  <div className="flex space-x-2 flex-wrap">
+                    {['S', 'M', 'L', 'XL', 'XXL'].map(size => (
+                      <button
+                        key={size}
+                        onClick={() => setSelectedSize(size)}
+                        className={`px-4 py-2 border rounded-lg text-sm font-medium transition-all ${
+                          selectedSize === size
+                            ? 'bg-[#00aaff] text-white border-[#00aaff] shadow-md'
+                            : 'border-gray-300 hover:border-gray-400 hover:shadow-sm'
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              ) : null}
 
               {/* Features */}
               <div>

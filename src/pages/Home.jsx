@@ -10,24 +10,36 @@ import { useGetProductsQuery, useGetCategoriesQuery } from '../services/api';
 const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
 
+  // Normalize API data like Shop/ProductCard/ProductDetail
+  const displayImage = product.images?.[0] || product.thumbnail || product.image || `https://picsum.photos/300/300?random=${product.id}`;
+  const displayTitle = product.title || product.name || '';
+  const displayPrice = Math.round((product.price || 0) * 110); // USD to BDT
+  const displayDiscount = product.discountPercentage ? `${Math.round(product.discountPercentage)}% OFF` : null;
+  const rating = product.rating || 4;
+  const reviews = product.reviews?.length || 0;
+
   return (
     <div className="bg-white border border-gray-100 rounded-xl p-2 sm:p-4 group relative hover:shadow-lg transition-all">
-      {product.discount && (
+      {displayDiscount && (
         <span className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-orange-500 text-white text-[8px] sm:text-[10px] font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded z-10">
-          {product.discount}
+          {displayDiscount}
         </span>
       )}
       <button className="absolute top-2 right-2 sm:top-4 sm:right-4 text-gray-300 hover:text-red-500 transition-colors z-10">
-        <Heart size={16} className={product.liked ? 'text-red-500' : ''} fill={product.liked ? 'currentColor' : 'none'} />
+        <Heart size={16} />
       </button>
       
       <Link to={`/product/${product.id}`} className="block">
-        <div className="aspect-square mb-2 sm:mb-4 overflow-hidden rounded-lg">
+        <div className="aspect-square mb-2 sm:mb-4 overflow-hidden rounded-lg bg-gray-100">
           <img 
-            src={product.image} 
-            alt={product.name} 
+            src={displayImage} 
+            alt={displayTitle} 
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             referrerPolicy="no-referrer"
+            loading="lazy"
+            onError={(e) => {
+              e.target.src = `https://picsum.photos/300/300?random=${product.id}`;
+            }}
           />
         </div>
       </Link>
@@ -35,17 +47,17 @@ const ProductCard = ({ product }) => {
       <div className="space-y-1 sm:space-y-2">
         <div className="flex text-orange-400">
           {[...Array(5)].map((_, i) => (
-            <Star key={i} size={10} fill={i < product.rating ? 'currentColor' : 'none'} />
+            <Star key={i} size={10} fill={i < rating ? 'currentColor' : 'none'} />
           ))}
-          <span className="text-gray-400 text-[8px] sm:text-[10px] ml-1">({product.reviews})</span>
+        <span className="text-gray-400 text-[8px] sm:text-[10px] ml-1">({reviews})</span>
         </div>
         <Link to={`/product/${product.id}`}>
-          <h3 className="text-xs sm:text-sm font-medium text-gray-800 line-clamp-2 min-h-[32px] sm:min-h-[40px] hover:text-[#00aaff] transition-colors">
-            {product.name}
+          <h3 className="text-xs sm:text-sm font-medium text-gray-800 line-clamp-2 min-h-[32px] hover:text-[#00aaff] transition-colors">
+            {displayTitle}
           </h3>
         </Link>
         <div className="flex items-center justify-between pt-1 sm:pt-2">
-          <span className="text-[#00aaff] font-bold text-sm sm:text-lg">৳{product.price}</span>
+          <span className="text-[#00aaff] font-bold text-sm sm:text-lg">৳{displayPrice.toLocaleString()}</span>
           <button 
             onClick={() => addToCart(product)}
             className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border border-[#00aaff] text-[#00aaff] flex items-center justify-center hover:bg-[#00aaff] hover:text-white transition-colors"
@@ -62,15 +74,7 @@ const Home = () => {
   const { data, isLoading, error } = useGetProductsQuery({ limit: 20, skip: 0 });
   const { data: categoriesData } = useGetCategoriesQuery();
   const categories = categoriesData || [];
-  const products = data?.products?.map(product => ({
-    ...product,
-    name: product.title,
-    image: product.thumbnail,
-    price: Math.round(product.price * 110), // USD to approx BDT
-    discount: product.discountPercentage ? `${Math.round(product.discountPercentage)}% OFF` : null,
-    reviews: Math.floor(Math.random() * 100) + 1,
-    liked: false
-  })) || [];
+  const products = data?.products || [];
 
   if (isLoading) return (
     <Layout>
@@ -120,7 +124,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Flash Deals */}
+       {/* Flash Deals */}
       <section className="max-w-7xl mx-auto px-4 py-12">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl font-bold text-gray-800">Flash Deals</h2>
@@ -134,6 +138,7 @@ const Home = () => {
           ))}
         </div>
       </section>
+
 
       {/* Featured Products */}
       <section className="max-w-7xl mx-auto px-4 py-12">

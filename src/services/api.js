@@ -2,11 +2,17 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const apiService = createApi({
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://dummyjson.com",
+    baseUrl: "/api",
   }),
     endpoints: (build) => ({
     getProducts: build.query({
-      query: ({ limit, skip }) => `/products?limit=${limit}&skip=${skip}`,
+      query: ({ limit, skip, search = '' }) => {
+        const params = new URLSearchParams({ limit, skip });
+        if (search.trim()) {
+          params.append('search', search.trim());
+        }
+        return `/products?${params}`;
+      },
     }),
     getCategories: build.query({
       query: () => '/products/category-list',
@@ -25,7 +31,14 @@ export const apiService = createApi({
       }),
       invalidatesTags: [],
     }),
-  }),
+    loginUser: build.mutation({
+      query: ({ username, password }) => ({
+        url: 'https://dummyjson.com/auth/login',
+        method: 'POST',
+        body: { username, password },
+      }),
+    }),
+  })
 });
 
-export const { useGetProductsQuery, useGetCategoriesQuery, useGetProductsByCategoryQuery, useGetProductByIdQuery, useRegisterUserMutation } = apiService;
+export const { useGetProductsQuery, useGetCategoriesQuery, useGetProductsByCategoryQuery, useGetProductByIdQuery, useRegisterUserMutation, useLoginUserMutation } = apiService;
