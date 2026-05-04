@@ -1,11 +1,12 @@
-import React, { useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Search, User, Heart, ShoppingCart } from 'lucide-react';
-import SearchInput from '../SearchInput';
+import SearchInput from '../../ui/SearchInput.jsx';
 import { useCart } from '../../../context/CartContext';
+
 import { useGetCategoriesQuery } from '../../../services/api';
 
-const Navbar = () => {
+const Navbar = ({ searchTerm, onSearchChange }) => {
   const { cartCount } = useCart();
   const { data: categoriesData } = useGetCategoriesQuery();
   const allCategories = categoriesData || [];
@@ -27,7 +28,7 @@ const Navbar = () => {
 
         {/* Search Bar */}
         <div className="flex-1 max-w-2xl relative">
-          <SearchInput />
+          <SearchInput searchTerm={searchTerm} onSearchChange={onSearchChange} />
         </div>
 
         {/* Icons */}

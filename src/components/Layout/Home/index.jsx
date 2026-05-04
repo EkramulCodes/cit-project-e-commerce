@@ -30,10 +30,10 @@ const FeaturesBar = () => {
   );
 };
 
-const Layout = ({ children }) => {
+const Layout = ({ children, searchTerm, onSearchChange }) => {
   return (
     <div className="min-h-screen bg-white flex flex-col overflow-x-hidden">
-      <Navbar />
+<Navbar searchTerm={searchTerm} onSearchChange={onSearchChange} />
       <main className="flex-grow">
         {children}
       </main>

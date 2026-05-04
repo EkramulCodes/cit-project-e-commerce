@@ -42,3 +42,4 @@ export const apiService = createApi({
 });
 
 export const { useGetProductsQuery, useGetCategoriesQuery, useGetProductsByCategoryQuery, useGetProductByIdQuery, useRegisterUserMutation, useLoginUserMutation } = apiService;
+

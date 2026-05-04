@@ -1,23 +1,80 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
+import { useGetProductsQuery } from '../services/api';
 import Layout from '../components/Layout/Home';
-import { products } from '../constants';
-import { Star, ShoppingCart, Heart, Filter, ChevronDown } from 'lucide-react';
+import ProductCard from '../components/product/ProductCard';
+import { Filter, ChevronDown, Star, ShoppingCart, Heart } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
 const Search = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
-  const [filteredProducts, setFilteredProducts] = useState([]);
   const { addToCart } = useCart();
 
-  useEffect(() => {
-    const results = products.filter(p => 
-      p.name.toLowerCase().includes(query.toLowerCase()) || 
-      p.category?.toLowerCase().includes(query.toLowerCase())
+  const { data, isLoading, error } = useGetProductsQuery(
+    { limit: 50, skip: 0, search: query.trim() },
+    { skip: !query.trim() }
+  );
+
+  const products = data?.products || [];
+  const total = data?.total || 0;
+
+  // Enhanced filtering logic: exact match first, then same-category products
+  const processedProducts = useMemo(() => {
+    if (!query.trim() || products.length === 0) return [];
+
+    const lowerQuery = query.toLowerCase().trim();
+    const scoredItems = products
+      .map(product => {
+        const title = (product.title || "").toLowerCase().trim();
+        const category = (product.category || "").toLowerCase();
+        let score = 0;
+
+        if (title === lowerQuery) {
+          score = 100; // Exact match
+        } else if (title.startsWith(lowerQuery)) {
+          score = 75;
+        } else if (title.includes(lowerQuery)) {
+          score = 50;
+          if (category === "smartphones") score += 30;
+        } else if (category === lowerQuery) {
+          score = 40;
+        } else if (category.includes(lowerQuery)) {
+          score = 25;
+        }
+
+        return { product, score };
+      })
+      .filter(item => item.score > 0)
+      .sort((a, b) => b.score - a.score);
+
+    if (scoredItems.length > 0) {
+      const topProduct = scoredItems[0].product;
+      const topCategory = topProduct.category;
+      
+      // Get all products from the same category as the top result
+      const categoryMatches = products.filter(p => 
+        p.category === topCategory && p.id !== topProduct.id
+      );
+
+      return [topProduct, ...categoryMatches].slice(0, 20);
+    }
+
+    return [];
+  }, [products, query]);
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="max-w-7xl mx-auto px-4 py-12">
+          <div className="text-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00aaff] mx-auto mb-4"></div>
+            <p className="text-gray-500">Searching products...</p>
+          </div>
+        </div>
+      </Layout>
     );
-    setFilteredProducts(results);
-  }, [query]);
+  }
 
   return (
     <Layout>
@@ -28,7 +85,7 @@ const Search = () => {
               Search Results for "{query}"
             </h1>
             <p className="text-sm text-gray-500 mt-1">
-              Found {filteredProducts.length} products
+              Found {processedProducts.length} of {total} products
             </p>
           </div>
           
@@ -38,59 +95,25 @@ const Search = () => {
             </button>
             <div className="relative group">
               <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:border-[#00aaff] transition-colors">
-                Sort by: Newest <ChevronDown size={16} />
+                Sort by: Relevance <ChevronDown size={16} />
               </button>
             </div>
           </div>
         </div>
 
-        {filteredProducts.length > 0 ? (
+        {error ? (
+          <div className="py-20 text-center">
+            <div className="text-6xl mb-4 text-gray-400">⚠️</div>
+            <h2 className="text-xl font-bold text-gray-800 mb-2">Search error</h2>
+            <p className="text-gray-500 mb-8">Please try again later</p>
+            <Link to="/" className="bg-[#00aaff] text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+              Back to Home
+            </Link>
+          </div>
+        ) : processedProducts.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {filteredProducts.map(product => (
-              <div key={product.id} className="bg-white border border-gray-100 rounded-xl p-4 group relative hover:shadow-lg transition-all">
-                {product.discount && (
-                  <span className="absolute top-4 left-4 bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded z-10">
-                    {product.discount}
-                  </span>
-                )}
-                <button className="absolute top-4 right-4 text-gray-300 hover:text-red-500 transition-colors z-10">
-                  <Heart size={20} fill={product.liked ? 'currentColor' : 'none'} className={product.liked ? 'text-red-500' : ''} />
-                </button>
-                
-                <Link to={`/product/${product.id}`} className="block">
-                  <div className="aspect-square mb-4 overflow-hidden rounded-lg">
-                    <img 
-                      src={product.image} 
-                      alt={product.name} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      referrerPolicy="no-referrer"
-                    />
-                  </div>
-                </Link>
-                
-                <div className="space-y-2">
-                  <div className="flex text-orange-400">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} size={12} fill={i < product.rating ? 'currentColor' : 'none'} />
-                    ))}
-                    <span className="text-gray-400 text-[10px] ml-1">({product.reviews})</span>
-                  </div>
-                  <Link to={`/product/${product.id}`}>
-                    <h3 className="text-sm font-medium text-gray-800 line-clamp-2 min-h-[40px] hover:text-[#00aaff] transition-colors">
-                      {product.name}
-                    </h3>
-                  </Link>
-                  <div className="flex items-center justify-between pt-2">
-                    <span className="text-[#00aaff] font-bold text-lg">৳{product.price}</span>
-                    <button 
-                      onClick={() => addToCart(product)}
-                      className="w-8 h-8 rounded-lg border border-[#00aaff] text-[#00aaff] flex items-center justify-center hover:bg-[#00aaff] hover:text-white transition-colors"
-                    >
-                      <ShoppingCart size={16} />
-                    </button>
-                  </div>
-                </div>
-              </div>
+            {processedProducts.map(product => (
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
         ) : (
@@ -109,3 +132,7 @@ const Search = () => {
 };
 
 export default Search;
+
+
+
+
