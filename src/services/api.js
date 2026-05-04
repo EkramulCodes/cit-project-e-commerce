@@ -1,4 +1,4 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+﻿import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const apiService = createApi({
   baseQuery: fetchBaseQuery({
@@ -7,11 +7,10 @@ export const apiService = createApi({
     endpoints: (build) => ({
     getProducts: build.query({
       query: ({ limit, skip, search = '' }) => {
-        const params = new URLSearchParams({ limit, skip });
         if (search.trim()) {
-          params.append('search', search.trim());
+          return `/products/search?q=${encodeURIComponent(search.trim())}&limit=${limit}&skip=${skip}`;
         }
-        return `/products?${params}`;
+        return `/products?limit=${limit}&skip=${skip}`;
       },
     }),
     getCategories: build.query({
@@ -42,4 +41,3 @@ export const apiService = createApi({
 });
 
 export const { useGetProductsQuery, useGetCategoriesQuery, useGetProductsByCategoryQuery, useGetProductByIdQuery, useRegisterUserMutation, useLoginUserMutation } = apiService;
-

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+﻿import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout/Home';
 import Banner from '../components/Layout/Home/Banner';
@@ -14,7 +14,7 @@ const ProductCard = ({ product }) => {
   const displayImage = product.images?.[0] || product.thumbnail || product.image || `https://picsum.photos/300/300?random=${product.id}`;
   const displayTitle = product.title || product.name || '';
   const displayPrice = Math.round((product.price || 0) * 110); // USD to BDT
-  const displayDiscount = product.discountPercentage ? `${Math.round(product.discountPercentage)}% OFF` : null;
+  const displayDiscount = product.discountPercentage ? `${Math.round(product.discountPercentage)}% OFF` : null;       
   const rating = product.rating || 4;
   const reviews = product.reviews?.length || 0;
 
@@ -28,12 +28,12 @@ const ProductCard = ({ product }) => {
       <button className="absolute top-2 right-2 sm:top-4 sm:right-4 text-gray-300 hover:text-red-500 transition-colors z-10">
         <Heart size={16} />
       </button>
-      
+
       <Link to={`/product/${product.id}`} className="block">
         <div className="aspect-square mb-2 sm:mb-4 overflow-hidden rounded-lg bg-gray-100">
-          <img 
-            src={displayImage} 
-            alt={displayTitle} 
+          <img
+            src={displayImage}
+            alt={displayTitle}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             referrerPolicy="no-referrer"
             loading="lazy"
@@ -43,7 +43,7 @@ const ProductCard = ({ product }) => {
           />
         </div>
       </Link>
-      
+
       <div className="space-y-1 sm:space-y-2">
         <div className="flex text-orange-400">
           {[...Array(5)].map((_, i) => (
@@ -57,7 +57,7 @@ const ProductCard = ({ product }) => {
           </h3>
         </Link>
         <div className="flex items-center justify-between pt-1 sm:pt-2">
-          <span className="text-[#00aaff] font-bold text-sm sm:text-lg">৳{displayPrice.toLocaleString()}</span>
+          <span className="text-[#00aaff] font-bold text-sm sm:text-lg">৳{displayPrice.toLocaleString()}</span>     
           <button 
             onClick={() => addToCart(product)}
             className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border border-[#00aaff] text-[#00aaff] flex items-center justify-center hover:bg-[#00aaff] hover:text-white transition-colors"
@@ -77,51 +77,50 @@ const Home = () => {
     setSearchTerm(term);
   }, []);
 
-  const { data, isLoading, error } = useGetProductsQuery({ 
-    limit: 20, 
-    skip: 0, 
-    search: searchTerm.trim() 
+  const { data, isLoading, error } = useGetProductsQuery({
+    limit: 50,
+    skip: 0,
+    search: searchTerm.trim()
   });
   const { data: categoriesData } = useGetCategoriesQuery();
   const categories = categoriesData || [];
   const productsData = data?.products || [];
-  
+
   const products = useMemo(() => {
     if (!searchTerm.trim() || productsData.length === 0) return productsData;
-
+    
     const lowerQuery = searchTerm.toLowerCase().trim();
-    const scoredItems = productsData
-      .map(product => {
-        const title = (product.title || "").toLowerCase().trim();
-        const category = (product.category || "").toLowerCase();
+    return [...productsData]
+      .map(p => {
+        const title = (p.title || "").toLowerCase();
+        const brand = (p.brand || "").toLowerCase();
+        const category = (p.category || "").toLowerCase();
+        const tags = (p.tags || []).map(t => t.toLowerCase());
+        
         let score = 0;
+        if (title === lowerQuery) score += 100;
+        else if (title.startsWith(lowerQuery)) score += 75;
+        else if (title.includes(lowerQuery)) score += 50;
+        
+        if (brand === lowerQuery) score += 80;
+        else if (brand.includes(lowerQuery)) score += 40;
+        
+        if (category === lowerQuery) score += 60;
+        else if (category.includes(lowerQuery)) score += 30;
+        
+        if (tags.includes(lowerQuery)) score += 50;
 
-        if (title === lowerQuery) {
-          score = 100;
-        } else if (title.startsWith(lowerQuery)) {
-          score = 75;
-        } else if (title.includes(lowerQuery)) {
-          score = 50;
-          if (category === "smartphones") score += 30;
-        } else if (category === lowerQuery) {
-          score = 40;
-        } else if (category.includes(lowerQuery)) {
-          score = 25;
+        if ((category === "smartphones" || category === "laptops" || category === "tablets") && 
+            (title.includes(lowerQuery) || brand.includes(lowerQuery))) {
+          score += 20;
         }
-        return { product, score };
+
+        return { p, score };
       })
       .filter(item => item.score > 0)
-      .sort((a, b) => b.score - a.score);
-
-    if (scoredItems.length > 0) {
-      const topProduct = scoredItems[0].product;
-      const topCategory = topProduct.category;
-      const categoryMatches = productsData.filter(p => 
-        p.category === topCategory && p.id !== topProduct.id
-      );
-      return [topProduct, ...categoryMatches].slice(0, 20);
-    }
-    return [];
+      .sort((a, b) => b.score - a.score)
+      .map(item => item.p)
+      .slice(0, 20);
   }, [productsData, searchTerm]);
 
   if (isLoading) return (
@@ -178,7 +177,7 @@ const Home = () => {
           <section className="max-w-7xl mx-auto px-4 py-12">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-2xl font-bold text-gray-800">Flash Deals</h2>
-              <button className="text-gray-400 text-sm font-medium flex items-center gap-1 hover:text-[#00aaff]">
+              <button className="text-gray-400 text-sm font-medium flex items-center gap-1 hover:text-[#00aaff]">     
                 View more <ChevronRight size={16} />
               </button>
             </div>
@@ -198,14 +197,14 @@ const Home = () => {
           <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-2xl font-bold text-gray-800">
-                Search Results for "{searchTerm}"
+                Search Results for "${searchTerm}"
               </h1>
               <p className="text-sm text-gray-500 mt-1">
                 Found {products.length} products
               </p>
             </div>
-            <Link 
-              to={`/search?q=${encodeURIComponent(searchTerm)}`} 
+            <Link
+              to={`/search?q=${encodeURIComponent(searchTerm)}`}
               className="text-sm font-medium text-[#00aaff] hover:underline flex items-center gap-1"
             >
               View All Results <ChevronRight size={16} />
@@ -245,7 +244,3 @@ const Home = () => {
 };
 
 export default Home;
-
-
-
-

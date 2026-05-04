@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React, { useState, useCallback } from 'react';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import { Truck, RotateCcw, ShieldCheck, BadgeCheck } from 'lucide-react';
@@ -30,10 +30,22 @@ const FeaturesBar = () => {
   );
 };
 
-const Layout = ({ children, searchTerm, onSearchChange }) => {
+const Layout = ({ children, searchTerm: externalSearchTerm, onSearchChange: externalOnSearchChange }) => {
+  const [internalSearchTerm, setInternalSearchTerm] = useState('');
+  
+  const handleSearchChange = useCallback((term) => {
+    if (externalOnSearchChange) {
+      externalOnSearchChange(term);
+    } else {
+      setInternalSearchTerm(term);
+    }
+  }, [externalOnSearchChange]);
+
+  const currentSearchTerm = externalSearchTerm !== undefined ? externalSearchTerm : internalSearchTerm;
+
   return (
     <div className="min-h-screen bg-white flex flex-col overflow-x-hidden">
-<Navbar searchTerm={searchTerm} onSearchChange={onSearchChange} />
+      <Navbar searchTerm={currentSearchTerm} onSearchChange={handleSearchChange} />
       <main className="flex-grow">
         {children}
       </main>

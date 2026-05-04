@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+﻿import React, { useEffect, useState, useMemo } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useGetProductsQuery } from '../services/api';
 import Layout from '../components/Layout/Home';
@@ -17,50 +17,47 @@ const Search = () => {
   );
 
   const products = data?.products || [];
-  const total = data?.total || 0;
 
-  // Enhanced filtering logic: exact match first, then same-category products
   const processedProducts = useMemo(() => {
     if (!query.trim() || products.length === 0) return [];
-
+    
     const lowerQuery = query.toLowerCase().trim();
-    const scoredItems = products
-      .map(product => {
-        const title = (product.title || "").toLowerCase().trim();
-        const category = (product.category || "").toLowerCase();
+    return [...products]
+      .map(p => {
+        const title = (p.title || "").toLowerCase();
+        const brand = (p.brand || "").toLowerCase();
+        const category = (p.category || "").toLowerCase();
+        const tags = (p.tags || []).map(t => t.toLowerCase());
+        
         let score = 0;
-
-        if (title === lowerQuery) {
-          score = 100; // Exact match
-        } else if (title.startsWith(lowerQuery)) {
-          score = 75;
-        } else if (title.includes(lowerQuery)) {
-          score = 50;
-          if (category === "smartphones") score += 30;
-        } else if (category === lowerQuery) {
-          score = 40;
-        } else if (category.includes(lowerQuery)) {
-          score = 25;
+        
+        // Title matches
+        if (title === lowerQuery) score += 100;
+        else if (title.startsWith(lowerQuery)) score += 75;
+        else if (title.includes(lowerQuery)) score += 50;
+        
+        // Brand matches
+        if (brand === lowerQuery) score += 80;
+        else if (brand.includes(lowerQuery)) score += 40;
+        
+        // Category matches
+        if (category === lowerQuery) score += 60;
+        else if (category.includes(lowerQuery)) score += 30;
+        
+        // Tag matches
+        if (tags.includes(lowerQuery)) score += 50;
+        
+        // Global Boost for electronics/smartphones when searching for tech terms
+        if ((category === "smartphones" || category === "laptops" || category === "tablets") && 
+            (title.includes(lowerQuery) || brand.includes(lowerQuery))) {
+          score += 20;
         }
 
-        return { product, score };
+        return { p, score };
       })
       .filter(item => item.score > 0)
-      .sort((a, b) => b.score - a.score);
-
-    if (scoredItems.length > 0) {
-      const topProduct = scoredItems[0].product;
-      const topCategory = topProduct.category;
-      
-      // Get all products from the same category as the top result
-      const categoryMatches = products.filter(p => 
-        p.category === topCategory && p.id !== topProduct.id
-      );
-
-      return [topProduct, ...categoryMatches].slice(0, 20);
-    }
-
-    return [];
+      .sort((a, b) => b.score - a.score)
+      .map(item => item.p);
   }, [products, query]);
 
   if (isLoading) {
@@ -68,7 +65,7 @@ const Search = () => {
       <Layout>
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="text-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00aaff] mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00aaff] mx-auto mb-4"></div>      
             <p className="text-gray-500">Searching products...</p>
           </div>
         </div>
@@ -85,10 +82,10 @@ const Search = () => {
               Search Results for "{query}"
             </h1>
             <p className="text-sm text-gray-500 mt-1">
-              Found {processedProducts.length} of {total} products
+              Found {processedProducts.length} products
             </p>
           </div>
-          
+
           <div className="flex items-center gap-4">
             <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:border-[#00aaff] transition-colors">
               <Filter size={16} /> Filter
@@ -132,7 +129,3 @@ const Search = () => {
 };
 
 export default Search;
-
-
-
-
