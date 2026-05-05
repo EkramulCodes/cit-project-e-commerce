@@ -10,7 +10,7 @@ import { useGetProductsQuery, useGetCategoriesQuery } from '../services/api';
 const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
 
-  // Normalize API data like Shop/ProductCard/ProductDetail
+  
   const displayImage = product.images?.[0] || product.thumbnail || product.image || `https://picsum.photos/300/300?random=${product.id}`;
   const displayTitle = product.title || product.name || '';
   const displayPrice = Math.round((product.price || 0) * 110); // USD to BDT
@@ -192,7 +192,7 @@ const Home = () => {
 
 
       {searchTerm.trim() ? (
-        // Search Results Mode
+        
         <section className="max-w-7xl mx-auto px-4 py-12">
           <div className="flex items-center justify-between mb-8">
             <div>
@@ -217,7 +217,7 @@ const Home = () => {
           </div>
         </section>
       ) : (
-        // Featured Products (no search)
+        
         <section className="max-w-7xl mx-auto px-4 py-12">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-bold text-gray-800">Featured Product</h2>
@@ -244,3 +244,4 @@ const Home = () => {
 };
 
 export default Home;
+
