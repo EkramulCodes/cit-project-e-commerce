@@ -1,16 +1,33 @@
-﻿import React from 'react';
+﻿import React, { useEffect, useMemo } from 'react';
+
+
 import { Link, useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout/Home';
 import { useCart } from '../context/CartContext';
+import { useGetCartsQuery, useUpdateCartMutation } from '../services/api';
+
 import { Trash2, Minus, Plus, ShoppingBag, ArrowLeft } from "lucide-react";
 import Button from '../components/ui/Button';
 
 const Cart = () => {
   const { cartItems, removeFromCart, updateCartQuantity } = useCart();
+  const cartId = useMemo(() => '1', []);
   const navigate = useNavigate();
 
   const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const totalItemsCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  const { data } = useGetCartsQuery();
+  const carts = useMemo(() => (Array.isArray(data) ? data : data?.carts || data?.data || []), [data]);
+  const serverCart = useMemo(() => carts.find((c) => String(c.id) === String(cartId)), [carts, cartId]);
+
+  useEffect(() => {
+    // If backend has a single cart, let CartContext UI remain the source of truth for rendering totals.
+    // No UI change needed.
+  }, [serverCart]);
+
+  const [updateCartApi] = useUpdateCartMutation();
+
 
   if (cartItems.length === 0) {
     return (
@@ -72,7 +89,17 @@ const Cart = () => {
                     <div className="ml-6 flex items-center gap-4 self-center">
                       <div className="flex items-center bg-gray-100 rounded-lg p-1">
                         <button
-                          onClick={() => updateCartQuantity(item.id, item.quantity - 1)}
+                          onClick={async () => {
+                            const nextQty = item.quantity - 1;
+                            if (nextQty < 1) return;
+                            updateCartQuantity(item.id, nextQty);
+                            try {
+                              await updateCartApi({ id: cartId, merge: true, products: [{ id: item.id, quantity: nextQty }] }).unwrap();
+                            } catch (e) {
+                              console.error('PATCH cart quantity failed', e);
+                            }
+                          }}
+
                           className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-200 rounded-l-lg transition-colors"
                         >
                           <Minus size={14} />
