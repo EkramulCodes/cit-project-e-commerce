@@ -90,7 +90,7 @@ const ProductDetail = () => {
                 <img
                   src={product.images[selectedImageIndex]}
                   alt={product.name}
-                  className="w-full h-96 object-cover rounded-2xl shadow-2xl"
+                  className="w-full h-96 object-contain rounded-2xl shadow-2xl bg-white"
                   referrerPolicy="no-referrer"
                 />
               </div>
