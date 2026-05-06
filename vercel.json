@@ -2,11 +2,11 @@
   "version": 2,
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "api/index.js"
+      "handle": "filesystem"
     },
     {
-      "handle": "filesystem"
+      "src": "/api/(.*)",
+      "dest": "api/index.js"
     },
     {
       "src": "/(.*)",
@@ -14,4 +14,5 @@
     }
   ]
 }
+
 
