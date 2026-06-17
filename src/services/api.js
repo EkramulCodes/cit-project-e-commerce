@@ -2,7 +2,7 @@
 
 export const apiService = createApi({
   baseQuery: fetchBaseQuery({
-    baseUrl: "/api",
+    baseUrl: "https://dummyjson.com",
   }),
   endpoints: (build) => ({
     getProducts: build.query({
