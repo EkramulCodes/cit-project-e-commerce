@@ -24,7 +24,8 @@ export default defineConfig(({mode}) => {
     },
     
     build: {
-      sourcemap: true
+      sourcemap: true,
+      chunkSizeWarningLimit: 1600
     },
     
     server: {
