@@ -7,8 +7,8 @@ export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
   
   return {
-    // Crucial for GitHub Pages hosting at https://ekramulcodes.github.io/cit-project-e-commerce/
-    base: '/cit-project-e-commerce/',
+    // Allows hosting on both GitHub Pages (subpath) and Vercel (root)
+    base: './',
     
     plugins: [react(), tailwindcss()],
     

@@ -12,9 +12,13 @@ import { CartProvider } from './context/CartContext';
 
 
 export default function App() {
+  const basename = window.location.hostname.includes('github.io') 
+    ? '/cit-project-e-commerce/' 
+    : '/';
+
   return (
     <CartProvider>
-      <Router basename="/cit-project-e-commerce/">
+      <Router basename={basename}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/category/:category" element={<Category />} />
